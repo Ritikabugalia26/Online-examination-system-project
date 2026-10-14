@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Result</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="result-box">
+
+        <h1>Examination Result</h1>
+
+        <h2 id="studentName"></h2>
+
+        <p id="score"></p>
+
+        <p id="percentage"></p>
+
+        <h2 id="resultMessage"></h2>
+
+        <br>
+
+        <button onclick="window.location.href='exam.html'">
+            Retake Exam
+        </button>
+
+        <button onclick="window.location.href='index.html'">
+            Back to Home
+        </button>
+
+    </div>
+
+    <script>
+        const score = Number(localStorage.getItem("examScore")) || 0;
+const totalQuestions = Number(localStorage.getItem("totalQuestions")) || 0;
+const name = localStorage.getItem("studentName") || "Student";
+
+document.getElementById("studentName").innerText =
+    "Student: " + name;
+
+document.getElementById("score").innerText =
+    "Score: " + score + " out of " + totalQuestions;
+
+const percentage = totalQuestions > 0
+    ? Math.round((score / totalQuestions) * 100)
+    : 0;
+
+document.getElementById("percentage").innerText =
+    "Percentage: " + percentage + "%";
+
+if (totalQuestions > 0 && score >= Math.ceil(totalQuestions / 2)) {
+    document.getElementById("resultMessage").innerText =
+        "Congratulations! You Passed 🎉";
+} else {
+    document.getElementById("resultMessage").innerText =
+        "Keep Practicing! You can do better.";
+}
+
+// Save the result only once for this exam attempt
+if (sessionStorage.getItem("resultSavedForCurrentAttempt") !== "yes") {
+    const results = JSON.parse(localStorage.getItem("examResults")) || [];
+
+    results.push({
+        studentName: name,
+        score: score,
+        totalQuestions: totalQuestions,
+        percentage: percentage,
+        date: new Date().toLocaleString()
+    });
+
+    localStorage.setItem("examResults", JSON.stringify(results));
+    sessionStorage.setItem("resultSavedForCurrentAttempt", "yes");
+}
+
+        
+    </script>
+
+</body>
+</html>

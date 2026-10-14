@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Admin Panel</h1>
+        <div class="result-box">
+    <h2>Dashboard</h2>
+
+    <p>Total Questions: <strong id="totalQuestionsCount">0</strong></p>
+
+    <p>Total Student Attempts: <strong id="totalAttemptsCount">0</strong></p>
+</div>
+        <p>Add and manage examination questions below.</p>
+
+        <div class="result-box">
+            <h2>Add a Question</h2>
+
+            <form id="questionForm">
+                <label for="questionText">Question:</label>
+                <input
+                    type="text"
+                    id="questionText"
+                    placeholder="Enter your question"
+                    required
+                >
+
+                <label for="option1">Option 1:</label>
+                <input type="text" id="option1" required>
+
+                <label for="option2">Option 2:</label>
+                <input type="text" id="option2" required>
+
+                <label for="option3">Option 3:</label>
+                <input type="text" id="option3" required>
+
+                <label for="option4">Option 4:</label>
+                <input type="text" id="option4" required>
+
+                <label for="correctAnswer">Correct Answer:</label>
+                <input
+                    type="text"
+                    id="correctAnswer"
+                    placeholder="Enter the correct option text"
+                    required
+                >
+
+                <button type="submit">Add Question</button>
+                <p id="message"></p>
+            </form>
+        </div>
+
+        <hr>
+
+        <h2>Existing Questions</h2>
+        <div id="questionList"></div>
+
+        <hr>
+
+        <h2>Student Exam Results</h2>
+        <button type="button" onclick="window.print()">
+            Print Student Results
+        </button>
+
+        <button type="button" id="clearResultsButton">
+         Clear Results
+        </button>
+
+        <div id="resultsContainer">
+         <p>No student results available yet.</p>
+        </div>
+
+        <br>
+        <button type="button" onclick="window.location.href='index.html'">
+         Logout / Back to Home
+        </button>
+    </div>
+
+    <script>
+        const questionForm = document.getElementById("questionForm");
+        const questionList = document.getElementById("questionList");
+        const message = document.getElementById("message");
+        const resultsContainer = document.getElementById("resultsContainer");
+
+        function getQuestions() {
+            return JSON.parse(localStorage.getItem("questions")) || [];
+        }
+
+        function displayQuestions() {
+            const questions = getQuestions();
+            questionList.innerHTML = "";
+
+            if (questions.length === 0) {
+                questionList.textContent = "No questions added yet.";
+                return;
+            }
+
+            questions.forEach(function(question, index) {
+                const item = document.createElement("div");
+                item.className = "result-box";
+
+                const heading = document.createElement("h3");
+                heading.textContent = (index + 1) + ". " + question.question;
+                item.appendChild(heading);
+
+                question.options.forEach(function(option, optionIndex) {
+                    const optionText = document.createElement("p");
+                    optionText.textContent =
+                        "Option " + (optionIndex + 1) + ": " + option;
+                    item.appendChild(optionText);
+                });
+
+                const answer = document.createElement("p");
+                answer.textContent = "Correct Answer: " + question.correctAnswer;
+                item.appendChild(answer);
+
+                const deleteButton = document.createElement("button");
+                deleteButton.type = "button";
+                deleteButton.textContent = "Delete Question";
+
+                deleteButton.addEventListener("click", function() {
+                    const updatedQuestions = getQuestions();
+                    updatedQuestions.splice(index, 1);
+
+                    localStorage.setItem(
+                        "questions",
+                        JSON.stringify(updatedQuestions)
+                    );
+
+                    displayQuestions();
+                });
+
+                item.appendChild(deleteButton);
+                questionList.appendChild(item);
+            });
+        }
+
+        questionForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const question = document.getElementById("questionText").value.trim();
+
+            const options = [
+                document.getElementById("option1").value.trim(),
+                document.getElementById("option2").value.trim(),
+                document.getElementById("option3").value.trim(),
+                document.getElementById("option4").value.trim()
+            ];
+
+            const correctAnswer =
+                document.getElementById("correctAnswer").value.trim();
+
+            if (!options.includes(correctAnswer)) {
+                message.textContent =
+                    "Please enter the correct answer exactly as one of the four options.";
+                return;
+            }
+
+            const questions = getQuestions();
+
+            questions.push({
+                question: question,
+                options: options,
+                correctAnswer: correctAnswer
+            });
+
+            localStorage.setItem("questions", JSON.stringify(questions));
+
+            questionForm.reset();
+            message.textContent = "Question added successfully!";
+
+            displayQuestions();
+        });
+
+        function displayResults() {
+            const results =
+                JSON.parse(localStorage.getItem("examResults")) || [];
+
+            resultsContainer.innerHTML = "";
+
+            if (results.length === 0) {
+                resultsContainer.textContent =
+                    "No student results available yet.";
+                return;
+            }
+
+            results.forEach(function(result, index) {
+                const item = document.createElement("div");
+                item.className = "result-box";
+
+                const heading = document.createElement("h3");
+                heading.textContent = "Student " + (index + 1);
+                item.appendChild(heading);
+
+                const details = document.createElement("p");
+                details.textContent =
+                    "Name: " + result.studentName +
+                    " | Score: " + result.score +
+                    " out of " + result.totalQuestions +
+                    " | Percentage: " + result.percentage + "%" +
+                    " | Date: " + result.date;
+
+                item.appendChild(details);
+                resultsContainer.appendChild(item);
+            });
+        }
+        document.getElementById("clearResultsButton").addEventListener("click", function() {
+    const confirmClear = confirm(
+        "Are you sure you want to clear all student results?"
+    );
+
+    if (confirmClear) {
+        localStorage.removeItem("examResults");
+        displayResults();
+        alert("All student results have been cleared.");
+    }
+});
+        function updateDashboard() {
+    const questions = JSON.parse(localStorage.getItem("questions")) || [];
+    const results = JSON.parse(localStorage.getItem("examResults")) || [];
+
+    document.getElementById("totalQuestionsCount").textContent =
+        questions.length;
+
+    document.getElementById("totalAttemptsCount").textContent =
+        results.length;
+}
+
+updateDashboard();
+        displayQuestions();
+        displayResults();
+    </script>
+
+</body>
+</html>

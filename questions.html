@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Examination</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="timer">Time Left: 05:00</div>
+
+    <h1>Online Examination</h1>
+    <h2 id="welcomeMessage"></h2>
+    <div class="instructions">
+    <h2>Exam Instructions</h2>
+
+    <ul>
+        <li>Total Questions: 10</li>
+        <li>Time Limit: 5 minutes</li>
+        <li>Each question carries 1 mark</li>
+        <li>There is no negative marking</li>
+        <li>The exam will be submitted automatically when time ends</li>
+    </ul>
+</div>
+
+    <form id="examForm">
+        <div id="questionsContainer"></div>
+
+          <button type="button" id="submitButton" onclick="submitExam()">Submit Exam</button>
+
+    </form>
+    <script>
+    const studentName = localStorage.getItem("studentName") || "Student";
+
+    document.getElementById("welcomeMessage").innerText =
+        "Welcome, " + studentName + "!";
+
+    const questions = JSON.parse(localStorage.getItem("questions")) || [];
+    const questionsContainer = document.getElementById("questionsContainer");
+
+    let timeLeft = 5 * 60;
+    let submitted = false;
+
+    function displayExamQuestions() {
+        questionsContainer.innerHTML = "";
+
+        if (questions.length === 0) {
+            questionsContainer.innerHTML =
+                "<p>No questions added yet. Please ask the admin to add questions.</p>";
+            return;
+        }
+
+        questions.forEach(function(question, index) {
+            const questionDiv = document.createElement("div");
+            questionDiv.className = "question";
+
+            const heading = document.createElement("h3");
+            heading.textContent = (index + 1) + ". " + question.question;
+            questionDiv.appendChild(heading);
+
+            question.options.forEach(function(option, optionIndex) {
+                const label = document.createElement("label");
+                const radio = document.createElement("input");
+
+                radio.type = "radio";
+                radio.name = "q" + index;
+                radio.value = option;
+
+                label.appendChild(radio);
+                label.appendChild(document.createTextNode(" " + option));
+                questionDiv.appendChild(label);
+                questionDiv.appendChild(document.createElement("br"));
+            });
+
+            questionsContainer.appendChild(questionDiv);
+        });
+    }
+
+    displayExamQuestions();
+
+    const timer = setInterval(function() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+
+        document.getElementById("timer").innerText =
+            "Time Left: " +
+            String(minutes).padStart(2, "0") + ":" +
+            String(seconds).padStart(2, "0");
+
+        if (timeLeft <= 60) {
+            document.getElementById("timer").style.background = "#dc2626";
+        }
+
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            submitExam();
+            return;
+        }
+
+        timeLeft--;
+    }, 1000);
+
+    function submitExam() {
+        if (submitted) return;
+        submitted = true;
+        clearInterval(timer);
+
+        const submitButton = document.getElementById("submitButton");
+        submitButton.disabled = true;
+        submitButton.innerText = "Submitting...";
+
+        let score = 0;
+
+        questions.forEach(function(question, index) {
+            const selected = document.querySelector(
+                'input[name="q' + index + '"]:checked'
+            );
+
+            if (
+                selected &&
+                selected.value.trim().toLowerCase() ===
+                question.correctAnswer.trim().toLowerCase()
+            ) {
+                score++;
+            }
+        });
+
+        localStorage.setItem("examScore", score);
+        localStorage.setItem("totalQuestions", questions.length);
+
+        window.location.href = "result.html";
+    }
+</script>
+
+    
+
+</body>
+</html>

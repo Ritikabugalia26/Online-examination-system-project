@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Admin Login</h1>
+        <p>Enter your password to access the Admin Panel.</p>
+
+        <form id="loginForm">
+            <label for="password">Admin Password:</label>
+            <input
+                type="password"
+                id="password"
+                placeholder="Enter password"
+                required
+            >
+
+            <button type="submit">Login</button>
+            <p id="message"></p>
+        </form>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById("loginForm");
+
+        loginForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const password =
+                document.getElementById("password").value;
+
+            if (password === "Admin123") {
+                window.location.href = "admin.html";
+            } else {
+                document.getElementById("message").innerText =
+                    "Incorrect password. Please try again.";
+            }
+        });
+    </script>
+
+</body>
+</html>
